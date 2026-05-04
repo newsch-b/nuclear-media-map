@@ -951,8 +951,24 @@ function buildCharts(chart) {
   const periodBars = chart.period_bars || [];
   const hourly     = chart.hourly_dist || [];
 
+  Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", sans-serif';
+
   // ── Chart 1: Period bar chart ──
   const ctxP = document.getElementById('chart-period').getContext('2d');
+
+  // Gradient per bar
+  const makeGrad = (ctx, color1, color2, height) => {
+    const g = ctx.createLinearGradient(0, 0, 0, height);
+    g.addColorStop(0, color1);
+    g.addColorStop(1, color2);
+    return g;
+  };
+  const barColors = [
+    ['#94a3b8','#cbd5e1'],  // 2018: slate
+    ['#4f7fc9','#93b4e4'],  // 2021: blue-mid
+    ['#1e3a5f','#2d6bc4'],  // 2025: deep navy
+  ];
+
   new Chart(ctxP, {
     type: 'bar',
     data: {
@@ -960,45 +976,71 @@ function buildCharts(chart) {
       datasets: [{
         label: '留言數',
         data: periodBars.map(d => d.comments),
-        backgroundColor: ['#555', '#444', '#333'],
-        borderRadius: 4,
+        backgroundColor: context => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return '#888';
+          const i = context.dataIndex;
+          const [c1, c2] = barColors[i] || ['#555','#888'];
+          return makeGrad(ctx, c1, c2, chartArea.bottom - chartArea.top);
+        },
+        borderRadius: 6,
         borderSkipped: false,
+        barPercentage: 0.55,
       }]
     },
     options: {
       responsive: true,
+      layout: { padding: { top: 28 } },
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: '#1a1a1a',
+          padding: 10,
+          cornerRadius: 8,
           callbacks: {
             title: items => items[0].label,
             label: item => {
               const d = periodBars[item.dataIndex];
-              return [`留言：${d.comments.toLocaleString()} (${d.comments_pct}%)`,
-                      `影片：${d.videos} 支`];
+              return [`  留言：${d.comments.toLocaleString()} 則 (${d.comments_pct}%)`,
+                      `  影片：${d.videos} 支`];
             }
           }
         }
       },
       scales: {
-        x: { grid: { display: false } },
+        x: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: { color: '#555', font: { size: 12, weight: '600' } }
+        },
         y: {
-          ticks: { callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v },
-          grid: { color: '#f0f0f0' }
+          border: { display: false },
+          ticks: {
+            color: '#aaa',
+            font: { size: 11 },
+            callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v
+          },
+          grid: { color: '#f3f4f6', lineWidth: 1 }
         }
       }
     },
     plugins: [{
-      id: 'periodLabel',
+      id: 'barTopLabel',
       afterDatasetsDraw(chart) {
-        const { ctx, data } = chart;
+        const { ctx } = chart;
         chart.getDatasetMeta(0).data.forEach((bar, i) => {
           const d = periodBars[i];
           ctx.save();
-          ctx.fillStyle = '#555';
-          ctx.font = '11px sans-serif';
+          // comment count (large)
+          ctx.fillStyle = '#1a1a1a';
+          ctx.font = 'bold 13px sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(`${d.videos}支 | ${d.comments_pct}%`, bar.x, bar.y - 6);
+          ctx.fillText(d.comments.toLocaleString(), bar.x, bar.y - 14);
+          // sub info
+          ctx.fillStyle = '#888';
+          ctx.font = '11px sans-serif';
+          ctx.fillText(`${d.videos}支 · ${d.comments_pct}%`, bar.x, bar.y - 2);
           ctx.restore();
         });
       }
@@ -1006,13 +1048,17 @@ function buildCharts(chart) {
   });
 
   // ── Chart 2: Hourly area chart ──
-  const labels = Array.from({length: 48}, (_, i) => i);
   const ctxH = document.getElementById('chart-hourly').getContext('2d');
+  const labels = Array.from({length: 48}, (_, i) => i);
 
-  // cumulative pct for annotation
-  const total = hourly.reduce((a,b) => a+b, 0);
-  const cum48 = hourly.reduce((a,b) => a+b, 0);
-  const pct48 = total > 0 ? Math.round(cum48/total*100) : 0;
+  // Gradient fill
+  const areaGrad = ctxH.createLinearGradient(0, 0, 0, 320);
+  areaGrad.addColorStop(0,   'rgba(29, 78, 178, 0.35)');
+  areaGrad.addColorStop(0.6, 'rgba(59, 130, 246, 0.08)');
+  areaGrad.addColorStop(1,   'rgba(59, 130, 246, 0)');
+
+  // Milestones: hour → label
+  const milestones = { 1: '1h\n高峰', 8: '8h', 24: '24h' };
 
   new Chart(ctxH, {
     type: 'line',
@@ -1022,18 +1068,24 @@ function buildCharts(chart) {
         label: '留言數',
         data: hourly,
         fill: true,
-        backgroundColor: 'rgba(91,141,238,0.18)',
-        borderColor: '#5b8dee',
+        backgroundColor: areaGrad,
+        borderColor: '#2563eb',
         borderWidth: 2,
         pointRadius: 0,
-        tension: 0.35,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: '#2563eb',
+        tension: 0.4,
       }]
     },
     options: {
       responsive: true,
+      interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: '#1a1a1a',
+          padding: 10,
+          cornerRadius: 8,
           callbacks: {
             title: items => `發布後第 ${items[0].label} 小時`,
             label: item => `留言 ${item.raw.toLocaleString()} 則`
@@ -1042,27 +1094,46 @@ function buildCharts(chart) {
       },
       scales: {
         x: {
-          title: { display: true, text: '影片發布後小時數', font: { size: 11 } },
-          ticks: { maxTicksLimit: 12 },
+          title: { display: true, text: '影片發布後（小時）', color: '#888', font: { size: 11 } },
+          border: { display: false },
+          ticks: { color: '#aaa', maxTicksLimit: 13, font: { size: 11 } },
           grid: { display: false }
         },
         y: {
-          ticks: { callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v },
-          grid: { color: '#f0f0f0' }
+          border: { display: false },
+          ticks: { color: '#aaa', font: { size: 11 },
+                   callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v },
+          grid: { color: '#f3f4f6', lineWidth: 1 }
         }
       }
     },
     plugins: [{
-      id: 'hourlyAnnotation',
+      id: 'milestoneLines',
       afterDraw(chart) {
-        const { ctx, chartArea: { top, bottom, right } } = chart;
-        // 48h label
-        ctx.save();
-        ctx.fillStyle = '#1565c0';
-        ctx.font = 'bold 11px sans-serif';
-        ctx.textAlign = 'right';
-        ctx.fillText(`發布後 48 小時累積 ${pct48}% 留言`, right - 4, top + 14);
-        ctx.restore();
+        const { ctx, scales: { x, y }, chartArea: { top, bottom } } = chart;
+        Object.entries(milestones).forEach(([h, lbl]) => {
+          const xPos = x.getPixelForValue(Number(h));
+          ctx.save();
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = 'rgba(100,116,139,0.45)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(xPos, top);
+          ctx.lineTo(xPos, bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          // label above
+          ctx.fillStyle = '#64748b';
+          ctx.font = 'bold 10px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(lbl.split('\n')[0], xPos, top - 4);
+          if (lbl.includes('\n')) {
+            ctx.font = '9px sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText(lbl.split('\n')[1], xPos, top + 8);
+          }
+          ctx.restore();
+        });
       }
     }]
   });
