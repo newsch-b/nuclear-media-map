@@ -73,6 +73,32 @@ header .sub {
   flex-shrink: 0;
 }
 
+/* ── Nav bar ── */
+.site-nav {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+.site-nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  gap: 0;
+}
+.nav-link {
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.nav-link:hover { color: var(--text); border-bottom-color: #ccc; }
+.nav-link.active { color: var(--text); border-bottom-color: #1a1a1a; }
+
 /* ── Timeline ── */
 .timeline-section {
   background: #fff;
@@ -550,8 +576,17 @@ main {
   </div>
 </header>
 
+<!-- ── Nav ── -->
+<nav class="site-nav">
+  <div class="site-nav-inner">
+    <a class="nav-link active" data-target="section-timeline">核能政策一甲子</a>
+    <a class="nav-link" data-target="section-dashboard">立場傾向</a>
+    <a class="nav-link" data-target="section-videos">影音資料庫</a>
+  </div>
+</nav>
+
 <!-- ── Timeline ── -->
-<div class="timeline-section">
+<div class="timeline-section" id="section-timeline">
   <div class="timeline-toggle" id="tl-toggle">
     <span class="timeline-toggle-label">核能發展一甲子：政策歷程與民意變化</span>
     <span class="timeline-arrow open" id="tl-arrow">▲</span>
@@ -646,7 +681,7 @@ main {
 </div>
 
 <!-- ── Dashboard ── -->
-<div class="dashboard-section">
+<div class="dashboard-section" id="section-dashboard">
   <div class="dashboard-inner">
     <div class="dashboard-title">
       各媒體集團立場分布
@@ -691,7 +726,7 @@ main {
   </div>
 </div>
 
-<main>
+<main id="section-videos">
   <div class="card-grid" id="card-grid"></div>
   <div class="empty" id="empty" style="display:none">找不到符合條件的影片</div>
   <div class="load-more-wrap">
@@ -935,6 +970,30 @@ async function init() {
 init().catch(err => {
   document.getElementById('card-grid').innerHTML =
     `<div class="empty">⚠️ 無法載入資料：${err.message}<br><small>請先執行 process_nuclear_data.py，再用 python -m http.server 啟動</small></div>`;
+});
+
+// Nav bar – smooth scroll + active state
+document.querySelectorAll('.nav-link[data-target]').forEach(link => {
+  link.addEventListener('click', () => {
+    const target = document.getElementById(link.dataset.target);
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+const navSections = ['section-timeline', 'section-dashboard', 'section-videos'];
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      document.querySelectorAll('.nav-link').forEach(l => {
+        l.classList.toggle('active', l.dataset.target === id);
+      });
+    }
+  });
+}, { threshold: 0.15 });
+navSections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
 });
 
 // Timeline toggle
