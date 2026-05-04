@@ -464,7 +464,6 @@ main {
   <div class="header-inner">
     <div>
       <h1>台灣核能議題媒體觀察站</h1>
-      <div class="sub" id="sub-desc">載入中…</div>
     </div>
     <div class="legend">
       <div class="legend-item">
@@ -792,9 +791,6 @@ async function init() {
   const data = window.__DATA__;
 
   allVideos = data.videos;
-
-  document.getElementById('sub-desc').textContent =
-    `${data.meta.total} 支影片 × 立場分布 × 框架分析`;
 
   const usefulFrames = (data.meta.all_frames || []).filter(f => f !== '無關/無意義/資訊不足');
   buildFrameTabs(usefulFrames);
