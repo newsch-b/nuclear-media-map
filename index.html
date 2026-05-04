@@ -1122,15 +1122,16 @@ function buildCharts(chart) {
           ctx.lineTo(xPos, bottom);
           ctx.stroke();
           ctx.setLineDash([]);
-          // label above
-          ctx.fillStyle = '#64748b';
+          // label to the right of the line, near top
+          const lines = lbl.split('\n');
+          ctx.fillStyle = '#475569';
           ctx.font = 'bold 10px sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(lbl.split('\n')[0], xPos, top - 4);
-          if (lbl.includes('\n')) {
+          ctx.textAlign = 'left';
+          ctx.fillText(lines[0], xPos + 4, top + 14);
+          if (lines[1]) {
             ctx.font = '9px sans-serif';
             ctx.fillStyle = '#94a3b8';
-            ctx.fillText(lbl.split('\n')[1], xPos, top + 8);
+            ctx.fillText(lines[1], xPos + 4, top + 25);
           }
           ctx.restore();
         });
