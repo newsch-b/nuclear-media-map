@@ -245,7 +245,7 @@ header .sub {
 }
 .charts-grid {
   display: grid;
-  grid-template-columns: 1fr 1.6fr;
+  grid-template-columns: 1fr 1fr;
   gap: 28px;
   align-items: start;
 }
@@ -626,23 +626,6 @@ main {
   </div>
 </nav>
 
-<!-- ── Charts ── -->
-<div class="charts-section" id="section-charts">
-  <div class="charts-inner">
-    <div class="charts-title">核能議題 YouTube 討論概況</div>
-    <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-card-title">核能議題在 YouTube 的討論浪潮</div>
-        <div class="chart-wrap"><canvas id="chart-period" height="220"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-card-title">觀眾留言動態：急遽成長後消散（發布後 48 小時）</div>
-        <div class="chart-wrap"><canvas id="chart-hourly" height="220"></canvas></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ── Timeline ── -->
 <div class="timeline-section" id="section-timeline">
   <div class="timeline-toggle" id="tl-toggle">
@@ -733,6 +716,23 @@ main {
         <span class="tl-year">2025</span>
         <span class="tl-tag miss">公投③ 未達門檻</span>
         <div class="tl-text">「<strong>重啟核三</strong>」同意票達不同意票三倍，但投票率未達法定門檻；挺核聲量再度攀升</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Charts ── -->
+<div class="charts-section" id="section-charts">
+  <div class="charts-inner">
+    <div class="charts-title">核能議題 YouTube 討論概況</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-card-title">核能議題在 YouTube 的討論浪潮</div>
+        <div class="chart-wrap"><canvas id="chart-period" height="220"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">觀眾留言動態：急遽成長後消散（發布後 48 小時）</div>
+        <div class="chart-wrap"><canvas id="chart-hourly" height="220"></canvas></div>
       </div>
     </div>
   </div>
