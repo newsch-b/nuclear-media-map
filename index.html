@@ -610,22 +610,19 @@ main {
   margin-bottom: 36px;
   line-height: 1.7;
 }
+/* ── Flow grid (explicit row placement for perfect alignment) ── */
 .flow-root {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-.flow-columns {
+/* Two-column grid; items placed via grid-column + grid-row inline styles */
+.flow-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 32px;
+  column-gap: 32px;
   width: 100%;
-}
-.flow-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
+  align-items: center; /* vertically center items within each shared row */
 }
 .flow-col-header {
   width: 100%;
@@ -693,26 +690,28 @@ main {
   opacity: 0.75;
   margin-top: 2px;
 }
+/* Arrows: default centered text */
 .flow-arrow {
   font-size: 1.25rem;
   color: #b0bac5;
-  margin: 2px 0;
   line-height: 1;
+  text-align: center;
+  padding: 2px 0;
 }
+/* Output pair (two boxes side by side inside a grid cell) */
 .flow-outputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   width: 100%;
 }
-/* horizontal merge line connecting two columns */
+/* Merge line + conclusion */
 .flow-merge {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
   margin-top: 20px;
-  gap: 0;
 }
 .flow-merge-bar {
   width: 55%;
@@ -806,7 +805,7 @@ main {
     <a class="nav-link" data-target="section-charts">討論概況</a>
     <a class="nav-link" data-target="section-dashboard">立場傾向</a>
     <a class="nav-link" data-target="section-videos">影音資料庫</a>
-    <a class="nav-link" data-page="method" style="margin-left:auto">研究方法</a>
+    <a class="nav-link" data-page="method" style="margin-left:auto">方法說明</a>
   </div>
 </nav>
 
@@ -820,72 +819,110 @@ main {
     </div>
 
     <div class="flow-root">
-      <div class="flow-columns">
+      <!--
+        Explicit grid-row placement so both columns share the same row slots:
+        R1  headers
+        R2  334 URLs  |  223,691
+        R3  ↓         |  ↓
+        R4  語音轉譯   |  剔除短留言
+        R5  ↓         |  ↓
+        R6  Whisper   |  66關鍵字
+        R7  ↓         |  (empty – right col skips to R11)
+        R8  詞彙校正   |  (empty)
+        R9  ↓         |  (empty)
+        R10 Chunking  |  (empty)
+        R11 ↓         |  ↓
+        R12 3,535     |  140,815
+        R13 ↓         |  ↓
+        R14 Claude    |  GPT
+        R15 ↓         |  ↓
+        R16 摘要萃取   |  (empty)
+        R17 ↓         |  ↓
+        R18 outputs L |  outputs R
+      -->
+      <div class="flow-grid">
+        <!-- R1 headers -->
+        <div class="flow-col-header orange" style="grid-column:1;grid-row:1">影片端 / 產製論述</div>
+        <div class="flow-col-header teal"   style="grid-column:2;grid-row:1">留言端 / 公眾回應</div>
 
-        <!-- ── Left: 影片端 ── -->
-        <div class="flow-col">
-          <div class="flow-col-header orange">影片端 / 產製論述</div>
-          <div class="flow-box dark">
-            334 部影片 URL
-          </div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box process">語音轉譯：yt-dlp 取音訊</div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box process">Whisper 自動轉為文本</div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box process">詞彙校正</div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box process">Chunking 切分</div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box dark">
-            3,535 個分析單元
-            <span class="flow-box-label">平均每段 474 字元</span>
-          </div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box ai-orange">
-            Claude-4.6-Sonnet 標記
-            <span class="flow-box-label">適合長文件結構推理</span>
-          </div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box process">摘要萃取</div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-outputs">
-            <div class="flow-box output">8 大框架分類</div>
-            <div class="flow-box output">立場判定<br>（挺核 / 反核 / 中立）</div>
-          </div>
+        <!-- R2 primary data -->
+        <div class="flow-box dark" style="grid-column:1;grid-row:2">334 部影片 URL</div>
+        <div class="flow-box dark" style="grid-column:2;grid-row:2">223,691 則原始留言</div>
+
+        <!-- R3 arrows -->
+        <div class="flow-arrow" style="grid-column:1;grid-row:3">↓</div>
+        <div class="flow-arrow" style="grid-column:2;grid-row:3">↓</div>
+
+        <!-- R4 process 1 -->
+        <div class="flow-box process" style="grid-column:1;grid-row:4">語音轉譯：yt-dlp 取音訊</div>
+        <div class="flow-box process" style="grid-column:2;grid-row:4">剔除長度 ≤ 5 字元之留言</div>
+
+        <!-- R5 arrows -->
+        <div class="flow-arrow" style="grid-column:1;grid-row:5">↓</div>
+        <div class="flow-arrow" style="grid-column:2;grid-row:5">↓</div>
+
+        <!-- R6 process 2 -->
+        <div class="flow-box process" style="grid-column:1;grid-row:6">Whisper 自動轉為文本</div>
+        <div class="flow-box process" style="grid-column:2;grid-row:6">66 個核能關鍵字篩選</div>
+
+        <!-- R7 arrow left only -->
+        <div class="flow-arrow" style="grid-column:1;grid-row:7">↓</div>
+
+        <!-- R8 process 3 left only -->
+        <div class="flow-box process" style="grid-column:1;grid-row:8">詞彙校正</div>
+
+        <!-- R9 arrow left only -->
+        <div class="flow-arrow" style="grid-column:1;grid-row:9">↓</div>
+
+        <!-- R10 process 4 left only -->
+        <div class="flow-box process" style="grid-column:1;grid-row:10">Chunking 切分</div>
+
+        <!-- R11 arrows both -->
+        <div class="flow-arrow" style="grid-column:1;grid-row:11">↓</div>
+        <div class="flow-arrow" style="grid-column:2;grid-row:11">↓</div>
+
+        <!-- R12 secondary data both -->
+        <div class="flow-box dark" style="grid-column:1;grid-row:12">
+          3,535 個分析單元
+          <span class="flow-box-label">平均每段 474 字元</span>
+        </div>
+        <div class="flow-box dark" style="grid-column:2;grid-row:12">140,815 則留言</div>
+
+        <!-- R13 arrows both -->
+        <div class="flow-arrow" style="grid-column:1;grid-row:13">↓</div>
+        <div class="flow-arrow" style="grid-column:2;grid-row:13">↓</div>
+
+        <!-- R14 AI boxes both -->
+        <div class="flow-box ai-orange" style="grid-column:1;grid-row:14">
+          Claude-4.6-Sonnet 標記
+          <span class="flow-box-label">適合長文件結構推理</span>
+        </div>
+        <div class="flow-box ai-teal" style="grid-column:2;grid-row:14">
+          GPT-4.1-mini 標記
+          <span class="flow-box-label">低成本，適合大規模短文本分類</span>
         </div>
 
-        <!-- ── Right: 留言端 ── -->
-        <div class="flow-col">
-          <div class="flow-col-header teal">留言端 / 公眾回應</div>
-          <div class="flow-box dark">
-            223,691 則原始留言
-          </div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box process">剔除長度 ≤ 5 字元之留言</div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box process">66 個核能關鍵字篩選</div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box dark">
-            140,815 則留言
-          </div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box ai-teal">
-            GPT-4.1-mini 標記
-            <span class="flow-box-label">低成本，適合大規模短文本分類</span>
-          </div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-box process" style="visibility:hidden">佔位</div>
-          <div class="flow-arrow" style="visibility:hidden">↓</div>
-          <div class="flow-box process" style="visibility:hidden">佔位</div>
-          <div class="flow-arrow">↓</div>
-          <div class="flow-outputs">
-            <div class="flow-box output">8 大框架分類</div>
-            <div class="flow-box output">不文明言論<br>二元判（0/1）</div>
-          </div>
-        </div>
+        <!-- R15 arrows both -->
+        <div class="flow-arrow" style="grid-column:1;grid-row:15">↓</div>
+        <div class="flow-arrow" style="grid-column:2;grid-row:15">↓</div>
 
-      </div><!-- end flow-columns -->
+        <!-- R16 摘要萃取 left only -->
+        <div class="flow-box process" style="grid-column:1;grid-row:16">摘要萃取</div>
+
+        <!-- R17 arrows both -->
+        <div class="flow-arrow" style="grid-column:1;grid-row:17">↓</div>
+        <div class="flow-arrow" style="grid-column:2;grid-row:17">↓</div>
+
+        <!-- R18 outputs both -->
+        <div class="flow-outputs" style="grid-column:1;grid-row:18">
+          <div class="flow-box output">8 大框架分類</div>
+          <div class="flow-box output">立場判定<br>（挺核 / 反核 / 中立）</div>
+        </div>
+        <div class="flow-outputs" style="grid-column:2;grid-row:18">
+          <div class="flow-box output">8 大框架分類</div>
+          <div class="flow-box output">不文明言論<br>二元判（0/1）</div>
+        </div>
+      </div><!-- end flow-grid -->
 
       <!-- merge + conclusion -->
       <div class="flow-merge">
